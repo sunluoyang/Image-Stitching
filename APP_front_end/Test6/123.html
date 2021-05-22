@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" /> 
+		<link rel="stylesheet" href="css/mui.cropper.css" />
+
+		<script src='https://cdn.jsdelivr.net/npm/vue/dist/vue.js'></script>
+		<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/vant@2.12/lib/index.css'/>
+		<script src='https://cdn.jsdelivr.net/npm/vant@2.12/lib/vant.min.js'></script>
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		
+		<!-- <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script> -->
+		<style type="text/css">
+			.content {
+				margin-top: 5px;
+				width: 95%;
+			}
+			
+			img {
+				width: 100px;
+				height: 100px;
+				margin: 10px;
+				float: left;
+			}
+			
+			.mui-bar .mui-icon span {
+				font-size: 18px;
+			}
+			
+			.mui-icon-checkmarkempty {
+				color: #007aff;
+				float: right;
+				margin-right: 5px;
+			}
+			
+			.mui-icon-location {
+				color: #007aff;
+			}
+			
+			.mui-table-view {
+				margin: 8px;
+			}
+			
+			.position {
+				width: 80%;
+				text-align: center;
+				background: white;
+				line-height: 30px;
+				font-size: 20px;
+			}
+			#dwtupiao{
+				width:20px;
+				height: 20px;
+				float:left;
+				margin: 0;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<h1 id="xinzen" class="mui-title mui-badge-primary mui-badge-inverted">发布动态</h1>
+			<div id="finish" class="mui-icon mui-icon-checkmarkempty"></div>
+		</header>
+
+		<div class="mui-content" id="app">
+			<div style="text-align: center;">
+				<textarea id="content" class="content" placeholder=" " rows="6"></textarea>
+			</div>
+
+			<div>
+				<van-uploader v-model="fileList" multiple :after-read="afterRead" max-count="10" >
+					<img id="image" src="image/+@2x.png" />
+				</van-uploader>
+			</div>
+			<div id="" @click="updata">
+				提交
+			</div>
+			<h1>上传文件数：{{upFileList.length}}</h1>
+			<p>上传文件列表</p>
+			<p v-for="(item,i) in upFileList" :key="i">{{item}}</p>
+			
+			<h1>完成处理图片：</h1>
+			<van-button type="primary" @click="getlist()">获取</van-button>
+			<van-image
+			v-for="(item,i) in newimg" :key="i"
+				width='100'
+				height='100'
+				:src="item.cover"
+				@click="downloadImg(item.cover)"
+			/>
+		</div>
+
+		</div>
+		<script type="text/javascript" src="js/cropper.min.js"></script>
+		<script type="text/javascript" src="js/getImgs.js"></script>
+		<script src="js/mui.min.js"></script>
+ 
+		<script type="text/javascript">
+			mui.init();
+			var address;
+			mui.plusReady(function() { 
+				//上传图片
+				createUploader(); 
+			})
+			mui('#cropper-sheet').on('tap', '.mui-table-view-cell > a', function() {
+				var type = this.getAttribute('data-type');
+				mui("#cropper-sheet").popover('hide');
+				switch(type) {
+					case 'camera':
+						clickCamera();
+						break;
+					case 'gallery':
+						clickGallery();
+						break;
+					default:
+						break;
+				}
+			})
+			 
+		</script>
+	</body>
+
+</html>
+<script>
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            fileList: [],
+			upFileList:[],
+			
+			newimg:[],
+        },
+		mounted() {
+			
+		},
+        methods: {
+            afterRead(file) {
+                // 发送 POST 请求
+                // console.log(this.fileList);
+                
+            },
+			updata(){
+				let formdata = new FormData();
+				this.fileList.forEach(item => {
+				    formdata.append('image[]',item.file)
+				});
+				axios({
+				    method: 'post',
+				    url: 'http://192.168.32.71:8081/index/index/upload',
+				    data: formdata
+				}).then((res) => {
+				    console.log(res);
+					this.upFileList = res.data
+				}).catch((err) => {
+				    
+				});
+			},
+			getlist(){
+				axios({
+				    method: 'get',
+				    url: 'http://192.168.32.71:8081/index/index/getList',
+				}).then((res) => {
+				    console.log(res);
+					this.newimg = res.data.data
+				}).catch((err) => {
+				    
+				});
+			},
+			downloadImg(url){
+				var a = document.createElement('a');
+				var event = new MouseEvent('click')
+				a.download = '图片名字.jpg'
+				a.href = url;
+				a.dispatchEvent(event)
+			}
+        }
+    });
+</script>
